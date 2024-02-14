@@ -13,7 +13,7 @@ This Docker container allows you to stream MP4 files directly to Twitch.tv using
 2. **Run the Docker container:**
 
     ```bash
-    docker run -td --restart unless-stopped -v /path/to/mp4/files:/videos -e TWITCH_STREAM_KEY=<your_stream_key> mp4-streamer
+    docker run -td --restart unless-stopped -v /path/to/mp4/files:/videos -e TWITCH_STREAM_KEY=<your_stream_key> -e VIDEO_DIR=/videos mp4-streamer
     ```
 
     Replace `/path/to/mp4/files` with the directory path containing your MP4 files, and `<your_stream_key>` with your actual Twitch stream key.
