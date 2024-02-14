@@ -1,7 +1,19 @@
 FROM ubuntu:latest
 
+# Set Labels
+LABEL org.opencontainers.image.source="https://github.com/simeononsecurity/docker-ffmpeg-mp4-folder"
+LABEL org.opencontainers.image.description="Streams to Twich.TV from a folder of mp4 files"
+LABEL org.opencontainers.image.authors="simeononsecurity"
+
+# Set ENV Variables
+ENV DEBIAN_FRONTEND noninteractive
+ENV container docker
+ENV TERM=xterm
+
 # Install necessary dependencies
-RUN apt-get update && apt-get install -y \
+RUN apt update && \
+    apt full-upgrade -y --no-install-recommends && \
+    apt install -y \
     ffmpeg \
     x11vnc \
     xvfb \
