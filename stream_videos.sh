@@ -9,7 +9,7 @@ stream_videos() {
         # Find all MP4 files recursively in the video directory
         find "$VIDEO_DIR" -type f -name '*.mp4' | while read -r file; do
             echo "Streaming $file to Twitch..."
-            ffmpeg -re -i "$file" -c:v libx264 -preset veryfast -maxrate 3000k -bufsize 6000k -vf "scale=1280:-1" -g 50 -c:a aac -b:a 128k -ar 44100 -f flv "rtmp://live.twitch.tv/app/$TWITCH_STREAM_KEY"
+            ffmpeg -re -i "$file" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 -f flv "rtmp://live-lax.twitch.tv/app/$TWITCH_STREAM_KEY"
         done
     done
 }
