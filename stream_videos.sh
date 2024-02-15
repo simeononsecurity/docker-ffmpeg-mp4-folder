@@ -22,7 +22,7 @@ stream_videos() {
         echo "Preparing to stream file: $file"
 
         # Base ffmpeg command setup
-        local FFMPEG_CMD="ffmpeg -re -i \"$file\" -map 0:v -map 0:a -c:v libx264 -c:a aac -preset veryfast -maxrate 3000k -bufsize 6000k -g 50 -b:a 128k -ar 44100"
+        local FFMPEG_CMD="ffmpeg -re -nostdin -i \"$file\" -map 0 -flags +global_header -c:v libx264 -c:a aac -preset ultrafast -maxrate 3000k -bufsize 6000k -g 50 -b:a 128k -ar 44100"
 
         # Initializing tee muxer command with empty streams array
         local TEE_CMD="-f tee"
