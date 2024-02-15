@@ -43,7 +43,7 @@ stream_videos() {
         # Configure stream for Kick if both URL and key are provided
         if [ -n "${KICK_STREAM_URL}" ] && [ -n "${KICK_STREAM_KEY}" ]; then
             echo "Configuring stream for Kick"
-            STREAMS+=("[f=flv:onfail=ignore]${KICK_STREAM_URL}/${KICK_STREAM_KEY}")
+            STREAMS+=("[f=flv:onfail=ignore]${KICK_STREAM_URL}/app/${KICK_STREAM_KEY}")
         fi
 
         # Combine the stream configurations into a single string
