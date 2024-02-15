@@ -1,7 +1,9 @@
 #!/bin/bash
 
-# Function to stream videos
+# Stream videos to multiple platforms using ffmpeg and the tee muxer
 stream_videos() {
+    echo "Starting the streaming process..."
+
     # Access environment variables directly
     local VIDEO_DIR="${VIDEO_DIR}"
     local TWITCH_STREAM_KEY="${TWITCH_STREAM_KEY}"
@@ -9,49 +11,58 @@ stream_videos() {
     local KICK_STREAM_URL="${KICK_STREAM_URL}"  # Kick stream URL
     local KICK_STREAM_KEY="${KICK_STREAM_KEY}"  # Kick stream key
 
-    while true; do
-        # Find all MP4 files recursively in the video directory
-        find "${VIDEO_DIR}" -type f -name '*.mp4' | while read -r file; do
-            echo "Preparing to stream $file..."
+    echo "Video directory: ${VIDEO_DIR}"
+    echo "Twitch Stream Key: ${TWITCH_STREAM_KEY}"
+    echo "YouTube API Key: ${YOUTUBE_API_KEY}"
+    echo "Kick Stream URL: ${KICK_STREAM_URL}"
+    echo "Kick Stream Key: ${KICK_STREAM_KEY}"
 
-            # Initialize the base ffmpeg command with input file
-            local FFMPEG_CMD="ffmpeg -re -i \"$file\" -map 0:v -map 0:a -c:v libx264 -c:a aac -preset veryfast -maxrate 3000k -bufsize 6000k -g 50 -b:a 128k -ar 44100"
-            
-            # Construct the tee muxer output part of the command
-            local TEE_CMD="-f tee"
-            local STREAMS=()
+    # Loop through all MP4 files in the video directory
+    find "${VIDEO_DIR}" -type f -name '*.mp4' | while read -r file; do
+        echo "Preparing to stream file: $file"
 
-            # Add Twitch stream if key is provided
-            if [ -n "${TWITCH_STREAM_KEY}" ]; then
-                STREAMS+=("[f=flv:onfail=ignore]rtmp://live-lax.twitch.tv/app/${TWITCH_STREAM_KEY}")
-            fi
+        # Base ffmpeg command setup
+        local FFMPEG_CMD="ffmpeg -re -i \"$file\" -map 0:v -map 0:a -c:v libx264 -c:a aac -preset veryfast -maxrate 3000k -bufsize 6000k -g 50 -b:a 128k -ar 44100"
 
-            # Add YouTube stream if API key is provided
-            if [ -n "${YOUTUBE_API_KEY}" ]; then
-                STREAMS+=("[f=flv:onfail=ignore]rtmp://a.rtmp.youtube.com/live2/${YOUTUBE_API_KEY}")
-            fi
+        # Initializing tee muxer command with empty streams array
+        local TEE_CMD="-f tee"
+        local STREAMS=()
 
-            # Add Kick stream if URL and key are provided
-            if [ -n "${KICK_STREAM_URL}" ] && [ -n "${KICK_STREAM_KEY}" ]; then
-                STREAMS+=("[f=flv:onfail=ignore]${KICK_STREAM_URL}/${KICK_STREAM_KEY}")
-            fi
+        # Configure stream for Twitch if a stream key is provided
+        if [ -n "${TWITCH_STREAM_KEY}" ]; then
+            echo "Configuring stream for Twitch"
+            STREAMS+=("[f=flv:onfail=ignore]rtmp://live-lax.twitch.tv/app/${TWITCH_STREAM_KEY}")
+        fi
 
-            # Join the streams array into a string separated by '|'
-            local TEE_TARGETS=$(IFS='|'; echo "${STREAMS[*]}")
-            
-            if [ -n "${TEE_TARGETS}" ]; then
-                FFMPEG_CMD+=" ${TEE_CMD} \"${TEE_TARGETS}\""
-                echo "Streaming $file to the specified platforms..."
-                eval "${FFMPEG_CMD} &"
-            else
-                echo "No streaming destinations specified."
-            fi
+        # Configure stream for YouTube if an API key is provided
+        if [ -n "${YOUTUBE_API_KEY}" ]; then
+            echo "Configuring stream for YouTube"
+            STREAMS+=("[f=flv:onfail=ignore]rtmp://a.rtmp.youtube.com/live2/${YOUTUBE_API_KEY}")
+        fi
 
-            # Wait for the ffmpeg process to finish
-            wait
-        done
+        # Configure stream for Kick if both URL and key are provided
+        if [ -n "${KICK_STREAM_URL}" ] && [ -n "${KICK_STREAM_KEY}" ]; then
+            echo "Configuring stream for Kick"
+            STREAMS+=("[f=flv:onfail=ignore]${KICK_STREAM_URL}/${KICK_STREAM_KEY}")
+        fi
+
+        # Combine the stream configurations into a single string
+        local TEE_TARGETS=$(IFS='|'; echo "${STREAMS[*]}")
+
+        # Check if there are any configured streams and construct the final ffmpeg command
+        if [ -n "${TEE_TARGETS}" ]; then
+            FFMPEG_CMD+=" ${TEE_CMD} \"${TEE_TARGETS}\""
+            echo "Final ffmpeg command: ${FFMPEG_CMD}"
+            echo "Streaming $file to the specified platforms..."
+            eval "${FFMPEG_CMD} &"
+        else
+            echo "No streaming destinations specified. Skipping $file."
+        fi
+
+        # Wait for the ffmpeg process to finish before moving to the next file
+        wait
     done
 }
 
-# Start streaming videos without passing parameters
+echo "Initiating stream_videos function..."
 stream_videos
