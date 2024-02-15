@@ -14,30 +14,34 @@ stream_videos() {
         find "${VIDEO_DIR}" -type f -name '*.mp4' | while read -r file; do
             echo "Preparing to stream $file..."
             
-            # Initialize an empty command for ffmpeg
-            local FFMPEG_CMD="ffmpeg -re -i \"$file\""
+            # Initialize the base ffmpeg command with input file
+            local FFMPEG_CMD="ffmpeg -re -i \"$file\" -c:v libx264 -preset veryfast -maxrate 3000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100"
             
-            # Append to the ffmpeg command for Twitch if the Twitch stream key is provided
+            # Construct the tee muxer output part of the command
+            local TEE_CMD="-f tee"
+            local STREAMS=()
+            
             if [ -n "${TWITCH_STREAM_KEY}" ]; then
-                echo "Streaming $file to Twitch..."
-                FFMPEG_CMD+=" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 -f flv \"rtmp://live-lax.twitch.tv/app/${TWITCH_STREAM_KEY}\""
+                STREAMS+=("[f=flv:onfail=ignore]rtmp://live-lax.twitch.tv/app/${TWITCH_STREAM_KEY}")
             fi
             
-            # Append to the ffmpeg command for YouTube if the YouTube API key is provided
             if [ -n "${YOUTUBE_API_KEY}" ]; then
-                echo "Streaming $file to YouTube..."
-                FFMPEG_CMD+=" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 -f flv \"rtmp://a.rtmp.youtube.com/live2/${YOUTUBE_API_KEY}\""
-            fi
-
-            # Append to the ffmpeg command for Kick if the Kick stream URL and key are provided
-            if [ -n "${KICK_STREAM_URL}" ] && [ -n "${KICK_STREAM_KEY}" ]; then
-                echo "Streaming $file to Kick..."
-                FFMPEG_CMD+=" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 -f flv \"${KICK_STREAM_URL}/${KICK_STREAM_KEY}\""
+                STREAMS+=("[f=flv:onfail=ignore]rtmp://a.rtmp.youtube.com/live2/${YOUTUBE_API_KEY}")
             fi
             
-            # Execute the ffmpeg command if any stream key is provided
-            if [ -n "${TWITCH_STREAM_KEY}" ] || [ -n "${YOUTUBE_API_KEY}" ] || ([ -n "${KICK_STREAM_URL}" ] && [ -n "${KICK_STREAM_KEY}" ]); then
+            if [ -n "${KICK_STREAM_URL}" ] && [ -n "${KICK_STREAM_KEY}" ]; then
+                STREAMS+=("[f=flv:onfail=ignore]${KICK_STREAM_URL}/${KICK_STREAM_KEY}")
+            fi
+            
+            # Join the streams array into a string separated by '|'
+            local TEE_TARGETS=$(IFS='|'; echo "${STREAMS[*]}")
+            
+            if [ -n "${TEE_TARGETS}" ]; then
+                FFMPEG_CMD+=" ${TEE_CMD} \"${TEE_TARGETS}\""
+                echo "Streaming $file to the specified platforms..."
                 eval "${FFMPEG_CMD} &"
+            else
+                echo "No streaming destinations specified."
             fi
             
             # Wait for the ffmpeg process to finish
