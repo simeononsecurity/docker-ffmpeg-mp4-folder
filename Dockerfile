@@ -2,7 +2,7 @@ FROM ubuntu:latest
 
 # Set Labels
 LABEL org.opencontainers.image.source="https://github.com/simeononsecurity/docker-ffmpeg-mp4-folder"
-LABEL org.opencontainers.image.description="Streams to Twich.TV from a folder of mp4 files"
+LABEL org.opencontainers.image.description="Stream From a Folder of MP4 Files to Twitch, YouTube, andor Kick"
 LABEL org.opencontainers.image.authors="simeononsecurity"
 
 # Set ENV Variables
