@@ -34,8 +34,7 @@ This Docker container allows you to stream MP4 files directly to Twitch.tv, YouT
 ## Notes
 
 - Ensure all stream keys and URLs are kept confidential and secure.
-- The Kick platform streaming details provided are illustrative. Replace "Kick" with the actual name of the platform if using a specific service not named here.
-
+- The Kick platform streaming options can be used to stream to any RTMP(S) server. Specify the kick stream url and kick stream key with whatever you feel like.
 ## License
 
 This Dockerfile is licensed under the [MIT License](LICENSE).
