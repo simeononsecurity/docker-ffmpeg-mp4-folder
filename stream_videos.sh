@@ -9,9 +9,15 @@ stream_videos() {
     while true; do
         # Find all MP4 files recursively in the video directory
         find "$VIDEO_DIR" -type f -name '*.mp4' | while read -r file; do
-            echo "Streaming $file to Twitch and YouTube..."
-            ffmpeg -re -i "$file" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 -f flv "rtmp://live-lax.twitch.tv/app/$TWITCH_STREAM_KEY" \
-                -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 -f flv "rtmp://a.rtmp.youtube.com/live2/$YOUTUBE_API_KEY"
+            if [ -n "$YOUTUBE_API_KEY" ]; then
+                echo "Streaming $file to Twitch and YouTube..."
+                ffmpeg -re -i "$file" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 \
+                -f flv "rtmp://live-lax.twitch.tv/app/$TWITCH_STREAM_KEY" \
+                -c:v copy -c:a copy -f flv "rtmp://a.rtmp.youtube.com/live2/$YOUTUBE_API_KEY"
+            else
+                echo "Streaming $file to Twitch..."
+                ffmpeg -re -i "$file" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 -f flv "rtmp://live-lax.twitch.tv/app/$TWITCH_STREAM_KEY"
+            fi
         done
     done
 }
