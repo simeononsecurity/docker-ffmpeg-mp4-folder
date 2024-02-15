@@ -31,10 +31,6 @@ This Docker container allows you to stream MP4 files directly to Twitch.tv, YouT
 - Installs `ffmpeg` and other necessary dependencies.
 - Uses `stream_videos.sh` script as the entrypoint to stream MP4 files to Twitch, YouTube, and Kick (or similar platforms) using `ffmpeg`.
 
-## Notes
-
-- Ensure all stream keys and URLs are kept confidential and secure.
-- The Kick platform streaming options can be used to stream to any RTMP(S) server. Specify the kick stream url and kick stream key with whatever you feel like.
 ## License
 
 This Dockerfile is licensed under the [MIT License](LICENSE).
