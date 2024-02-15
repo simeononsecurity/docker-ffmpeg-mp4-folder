@@ -1,37 +1,50 @@
 #!/bin/bash
 
-# Function to stream videos to Twitch
+# Function to stream videos
 stream_videos() {
-    local VIDEO_DIR="$1"
-    local TWITCH_STREAM_KEY="$2"
-    local YOUTUBE_API_KEY="$3"
+    # Access environment variables directly
+    local VIDEO_DIR="${VIDEO_DIR}"
+    local TWITCH_STREAM_KEY="${TWITCH_STREAM_KEY}"
+    local YOUTUBE_API_KEY="${YOUTUBE_API_KEY}"
+    local KICK_STREAM_URL="${KICK_STREAM_URL}"  # Kick stream URL
+    local KICK_STREAM_KEY="${KICK_STREAM_KEY}"  # Kick stream key
     
     while true; do
         # Find all MP4 files recursively in the video directory
-        find "$VIDEO_DIR" -type f -name '*.mp4' | while read -r file; do
-            if [ -n "$YOUTUBE_API_KEY" ]; then
-                echo "Streaming $file to Twitch and YouTube..."
-                ffmpeg -re -i "$file" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 \
-                -f flv "rtmp://live-lax.twitch.tv/app/$TWITCH_STREAM_KEY" \
-                -c:v copy -c:a copy -f flv "rtmp://a.rtmp.youtube.com/live2/$YOUTUBE_API_KEY"
-            else
+        find "${VIDEO_DIR}" -type f -name '*.mp4' | while read -r file; do
+            echo "Preparing to stream $file..."
+            
+            # Initialize an empty command for ffmpeg
+            local FFMPEG_CMD="ffmpeg -re -i \"$file\""
+            
+            # Append to the ffmpeg command for Twitch if the Twitch stream key is provided
+            if [ -n "${TWITCH_STREAM_KEY}" ]; then
                 echo "Streaming $file to Twitch..."
-                ffmpeg -re -i "$file" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 -f flv "rtmp://live-lax.twitch.tv/app/$TWITCH_STREAM_KEY"
+                FFMPEG_CMD+=" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 -f flv \"rtmp://live-lax.twitch.tv/app/${TWITCH_STREAM_KEY}\""
             fi
+            
+            # Append to the ffmpeg command for YouTube if the YouTube API key is provided
+            if [ -n "${YOUTUBE_API_KEY}" ]; then
+                echo "Streaming $file to YouTube..."
+                FFMPEG_CMD+=" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 -f flv \"rtmp://a.rtmp.youtube.com/live2/${YOUTUBE_API_KEY}\""
+            fi
+
+            # Append to the ffmpeg command for Kick if the Kick stream URL and key are provided
+            if [ -n "${KICK_STREAM_URL}" ] && [ -n "${KICK_STREAM_KEY}" ]; then
+                echo "Streaming $file to Kick..."
+                FFMPEG_CMD+=" -c:v libx264 -preset veryfast -maxrate 1000k -bufsize 6000k -g 50 -c:a aac -b:a 128k -ar 44100 -f flv \"${KICK_STREAM_URL}/${KICK_STREAM_KEY}\""
+            fi
+            
+            # Execute the ffmpeg command if any stream key is provided
+            if [ -n "${TWITCH_STREAM_KEY}" ] || [ -n "${YOUTUBE_API_KEY}" ] || ([ -n "${KICK_STREAM_URL}" ] && [ -n "${KICK_STREAM_KEY}" ]); then
+                eval "${FFMPEG_CMD} &"
+            fi
+            
+            # Wait for the ffmpeg process to finish
+            wait
         done
     done
 }
 
-# Check if the required environment variables are set
-if [ -z "$VIDEO_DIR" ] || [ -z "$TWITCH_STREAM_KEY" ]; then
-    echo "ERROR: Please set the VIDEO_DIR and TWITCH_STREAM_KEY environment variables."
-    exit 1
-fi
-
-# Check if YouTube API key is provided
-if [ -z "$YOUTUBE_API_KEY" ]; then
-    echo "WARNING: YouTube API key is not provided. Streaming only to Twitch."
-fi
-
-# Start streaming videos
-stream_videos "$VIDEO_DIR" "$TWITCH_STREAM_KEY" "$YOUTUBE_API_KEY"
+# Start streaming videos without passing parameters
+stream_videos
