@@ -65,4 +65,15 @@ stream_videos() {
 }
 
 echo "Initiating stream_videos function..."
-stream_videos
+# Loop control variable
+LOOP_INDEFINITELY="${LOOP_INDEFINITELY:-false}"
+
+echo "Initiating stream_videos function..."
+if [ "${LOOP_INDEFINITELY}" = "true" ]; then
+    while true; do
+        stream_videos
+        echo "Looping indefinitely. Restarting streaming process..."
+    done
+else
+    stream_videos
+fi
