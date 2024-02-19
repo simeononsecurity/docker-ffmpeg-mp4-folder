@@ -1,6 +1,6 @@
 # MP4 Streamer for Twitch, YouTube, and Kick
 
-This Docker container allows you to stream MP4 files directly to Twitch.tv, YouTube, and Kick (or a similar platform) using `ffmpeg`. It supports streaming the files in the specified directory once or looping indefinitely.
+This Docker container allows you to stream MP4 and MKV files directly to Twitch.tv, YouTube, and Kick (or a similar platform) using `ffmpeg`. It supports streaming the files in the specified directory once or looping indefinitely.
 
 ## Usage
 
