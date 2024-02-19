@@ -64,16 +64,24 @@ stream_videos() {
     done
 }
 
-echo "Initiating stream_videos function..."
-# Loop control variable
-LOOP_INDEFINITELY="${LOOP_INDEFINITELY:-false}"
+if find "${VIDEO_DIR}" -type f \( -name '*.mp4' -or -name '*.mkv' \) -print -quit | grep -q .; then
+    echo "Initiating stream_videos function..."
+    # Loop control variable
+    LOOP_INDEFINITELY="${LOOP_INDEFINITELY:-false}"
 
-echo "Initiating stream_videos function..."
-if [ "${LOOP_INDEFINITELY}" = "true" ]; then
-    while true; do
+    echo "Initiating stream_videos function..."
+    if [ "${LOOP_INDEFINITELY}" = "true" ]; then
+        while true; do
+            stream_videos
+            echo "Looping indefinitely. Restarting streaming process..."
+        done
+    else
         stream_videos
-        echo "Looping indefinitely. Restarting streaming process..."
-    done
+    fi
 else
-    stream_videos
+    echo "No Videos Found. Exiting..."
+    exit 1
 fi
+
+
+
