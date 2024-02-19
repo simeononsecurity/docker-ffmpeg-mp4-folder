@@ -18,7 +18,7 @@ stream_videos() {
     echo "Kick Stream Key: ${KICK_STREAM_KEY}"
 
     # Loop through all MP4 files in the video directory
-    find "${VIDEO_DIR}" -type f -name '*.mp4' | while read -r file; do
+    find "${VIDEO_DIR}" -type f \( -name '*.mp4' -or -name '*.mkv' \) | while read -r file; do
         echo "Preparing to stream file: $file"
 
         # Base ffmpeg command setup
